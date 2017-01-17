@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+ <head>
+ <title>flotaribm</title>
+ <style>
+ * { margin: 0; padding: 0; box-sizing: border-box; }
+ body { font: 13px Helvetica, Arial; } 
+ form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+ form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+ form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+ #messages { list-style-type: none; margin: 0; padding: 0; }
+ #messages li { padding: 5px 10px; }
+ #messages li:nth-child(odd) { background: #eee; }
+ </style>
+ </head>
+ <body>
+ <h1>flotaribm</h1>
+ <script>
+var restify = require('restify');
+var builder = require('botbuilder');
+
+//=========================================================
+// Bot Setup
+//=========================================================
+
+// Setup Restify Server
+var server = restify.createServer();
+server.listen(process.env.port || process.env.PORT || 3978, function () {
+    console.log('%s listening to %s', server.name, server.url);
+});
+
+// Create chat bot
+var connector = new builder.ChatConnector({
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
+});
+var bot = new builder.UniversalBot(connector);
+server.post('/api/messages', connector.listen());
+
+//=========================================================
+// Bots Dialogs
+//=========================================================
+
+var address = null;
+
+bot.dialog('/', function (session) {
+    // session.send("Hello World");
+});
+
+bot.on('conversationUpdate', function (message) {
+        if (message.membersAdded && message.membersAdded.length > 0) {
+            membersAdded = message.membersAdded;
+            //             .map((m) = > {
+            //             var isSelf = m.id === message.address.bot.id;
+            //     return (isSelf ? message.address.bot.name : m.name) || '' + ' (Id: ' + m.id + ')';
+            // })
+            // .
+            // join(', ');
+
+            console.log("num members: " + membersAdded.length);
+        }
+
+        address = message.address;
+
+        // if (message.membersRemoved && message.membersRemoved.length > 0) {
+        //     var membersRemoved = message.membersRemoved
+        //             .map((m) = > {
+        //             var isSelf = m.id === message.address.bot.id;
+        //     return (isSelf ? message.address.bot.name : m.name) || '' + ' (Id: ' + m.id + ')';
+        // })
+        // .
+        //     join(', ');
+        //
+        //     var reply = new builder.Message()
+        //         .address(message.address)
+        //         .text('The following members ' + membersRemoved + ' were removed or left the conversation :(');
+        //     bot.send(reply);
+    }
+);
+
+var send = function() {
+    if (address != null) {
+        var reply = new builder.Message()
+            .address(address)
+            .text("FLOTARI");
+        // console.log("address: " + address);
+        bot.send(reply);
+    }
+}
+
+var CronJob = require('cron').CronJob;
+
+var job = new CronJob('* * * * * *', send, null, false, "Europe/Bucharest");
+job.start();
+
+ </script>
+ </body>
+</html>
